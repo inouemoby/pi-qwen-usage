@@ -61,7 +61,7 @@ export function planInjection(remoteIds: string[], existing: ModelLike[]): Model
     if (known.has(id) || NON_CHAT.test(id)) continue;
     const template = pickTemplate(id, chatModels);
     if (!template) continue;
-    additions.push({ ...template, id, name: `${prettifyModelName(id)} (qwen-usage)` });
+    additions.push({ ...template, id, name: prettifyModelName(id) });
     known.add(id);
   }
   return additions;
