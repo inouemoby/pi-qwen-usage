@@ -429,7 +429,10 @@ export default function qwenUsageExtension(pi: ExtensionAPI) {
     const parts: string[] = [];
     const summary = summarizeCredits(data);
     if (!compact) {
+      // 主额度窗口(通常是月额度)已由 cr 表达,不再重复显示百分比;5h/周等额外窗口才单独显示。
+      const primary = primaryWindow(data);
       for (const window of data.windows) {
+        if (window === primary && summary.remaining !== null) continue;
         const severity = usageSeverity(window.usedPercent, window.durationMs, window.resetMs);
         const flag = severity === 2 ? "!!" : severity === 1 ? "!" : "";
         parts.push(`${flag}${window.label}:${formatPercent(window.usedPercent)}%`);

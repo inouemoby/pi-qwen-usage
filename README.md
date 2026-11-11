@@ -34,10 +34,11 @@ Environment variables are also honoured: `QWEN_TOKEN_PLAN_COOKIE` / `QWEN_TOKEN_
 ## Footer
 
 ```
-↑3.2k ↓1.1k 12.5%/1M (auto) mo:23% cr:61.6k/80k    (qwen-token-plan-individual-cn) qwen3.8-max • high
+↑3.2k ↓1.1k 12.5%/1M (auto) cr:61.6k/80k    (qwen-token-plan-individual-cn) qwen3.8-max • high
 ```
 
-- `mo:23%` / `5h:` / `wk:` — used percentage of each window the console reports; `!` above expected pace, `!!` above 1.5× pace
+- `cr:61.6k/80k` covers the main quota (the monthly one for current personal plans); its percentage is shown only in `/qwen-usage`
+- `5h:` / `wk:` — extra rolling windows, shown only when the plan has them; `!` above expected pace, `!!` above 1.5× pace
 - `cr:61.6k/80k` — remaining credits (plan window remaining + add-on packs) / total
 - `cr:/qwen-login` — not logged in yet; `⚠` — showing cached data after a failed refresh
 - When the line is too narrow, parts are dropped in order: provider name → cache counts → cost → cumulative tokens → quota collapses to `cr:61.6k`
