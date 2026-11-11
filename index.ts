@@ -4,6 +4,7 @@ import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { fetchRemoteModelIds, type ModelLike, planInjection } from "./models.ts";
 import { captureConsoleCookie, hasBrowserProfile, removeBrowserProfile } from "./login.ts";
 import {
   consoleUrl,
@@ -162,6 +163,37 @@ export default function qwenUsageExtension(pi: ExtensionAPI) {
   let persistedLoaded = false;
   let hintShown = false;
   const lastSilentRenew = new Map<QwenRegion, number>();
+  /** 本进程内已检查过新模型的 provider,避免每次会话都请求 /models。 */
+  const modelsChecked = new Set<string>();
+
+  /**
+   * 临时补齐 pi 还没内置的 Token Plan 新模型(如 qwen4-max-preview)。
+   * 只在运行时注入,不写任何配置;失败静默,不影响用量显示。
+   */
+  async function injectNewModels(ctx: ExtensionContext): Promise<void> {
+    const all = safe<ModelLike[]>(() => (ctx.modelRegistry.getAll() as unknown as ModelLike[]), []);
+    const providers = new Map<string, string>();
+    for (const model of all) {
+      if (providers.has(model.provider) || modelsChecked.has(model.provider)) continue;
+      if (detectRegion(model.provider, model.baseUrl) && model.baseUrl) providers.set(model.provider, model.baseUrl);
+    }
+    for (const [provider, baseUrl] of providers) {
+      try {
+        const auth = await ctx.modelRegistry.getProviderAuth(provider);
+        const apiKey = auth?.auth?.apiKey;
+        if (!apiKey) continue; // 没注册 Key 的 provider 下次再查
+        modelsChecked.add(provider);
+        const existing = safe<ModelLike[]>(
+          () => (ctx.modelRegistry.getAll() as unknown as ModelLike[]).filter((m) => m.provider === provider), []);
+        const additions = planInjection(await fetchRemoteModelIds(baseUrl, apiKey), existing);
+        if (additions.length === 0) continue;
+        // 扩展的 models 会整表替换该 provider,所以带上现有全部模型。
+        pi.registerProvider(provider, { models: [...existing, ...additions] as any });
+      } catch {
+        /* 网络或注册失败:保持 pi 原样 */
+      }
+    }
+  }
 
   /**
    * ticket 过期时,用 /qwen-login 留下的浏览器配置目录无头打开控制台,
@@ -531,6 +563,7 @@ export default function qwenUsageExtension(pi: ExtensionAPI) {
       startTimers();
       toggleFooter(ctx, true);
       void refresh(ctx);
+      void injectNewModels(ctx);
     } catch {
       /* 不影响 pi 启动 */
     }

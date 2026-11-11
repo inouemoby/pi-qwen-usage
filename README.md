@@ -59,6 +59,10 @@ Console APIs (`zeldaHttp.apikeyMgr./tokenplan/personal/api/v2/*`):
 
 Remaining = window limit × (1 − used%) + add-on remaining. The APIs are undocumented and may change; parsing is defensive.
 
+## New models not yet in pi (temporary)
+
+At session start the extension lists `<baseUrl>/models` with the provider's registered `sk-sp-` key and adds chat models the server offers but pi does not know yet (e.g. `qwen4-max-preview`, `deepseek-v4.1-flash`). Each one copies the parameters of the newest same-family, same-tier model (`qwen4-max-preview` → `qwen3.8-max`) and is labelled `(qwen-usage)`. Nothing is written to pi's config; models with no same-family template (`auto`, `decision-model-preview`) and non-chat models (image / video / audio) are skipped. Once pi ships a model natively, it is no longer injected.
+
 ## Limitations
 
 - Team edition (seat / shared-pack) quotas are not supported yet.

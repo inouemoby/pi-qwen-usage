@@ -111,3 +111,17 @@ test("NotLogined maps to LOGIN_EXPIRED", async () => {
 test("no credentials", async () => {
   await assert.rejects(fetchQwenUsage({ region: "cn", credentials: {} }), (e: unknown) => e instanceof QwenUsageError && e.code === "NO_CREDENTIALS");
 });
+
+import { pickTemplate, planInjection, prettifyModelName } from "../models.ts";
+
+test("new Token Plan models inherit nearest template", () => {
+  const existing = ["qwen3.6-flash", "qwen3.7-max", "qwen3.7-plus", "qwen3.8-flash", "qwen3.8-max", "glm-5.3"]
+    .map((id) => ({ id, provider: "p", baseUrl: "u", type: "chat", contextWindow: id.length }));
+  assert.equal(pickTemplate("qwen4-max-preview", existing)?.id, "qwen3.8-max");
+  assert.equal(pickTemplate("qwen4-flash", existing)?.id, "qwen3.8-flash");
+  const added = planInjection(["qwen3.8-max", "qwen4-max-preview", "wan3.0-video", "qwen-image-3.0-pro", "qwen-audio-3.0-tts-plus"], existing);
+  assert.deepEqual(added.map((m) => m.id), ["qwen4-max-preview"]);
+  assert.equal(added[0].contextWindow, "qwen3.8-max".length);
+  assert.equal(prettifyModelName("qwen4-max-preview"), "Qwen4 Max Preview");
+  assert.deepEqual(planInjection(["auto", "decision-model-preview"], existing), []);
+});
