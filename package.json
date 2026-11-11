@@ -1,0 +1,16 @@
+{
+  "name": "qwen-usage",
+  "version": "1.0.0",
+  "description": "Qwen / Alibaba Cloud Model Studio Token Plan usage monitor for pi. Shows remaining credits and quota windows in the footer.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": ["pi-package", "qwen", "bailian", "token-plan", "usage", "credits"],
+  "pi": { "extensions": ["./index.ts"] },
+  "scripts": { "test": "node --experimental-strip-types --test test/*.test.ts" },
+  "engines": { "node": ">=22" },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  }
+}
