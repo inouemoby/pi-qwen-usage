@@ -43,6 +43,21 @@ export function pickTemplate<T extends { id: string }>(id: string, known: T[]): 
   return [...pool].sort((a, b) => version(b.id) - version(a.id) || a.id.length - b.id.length)[0];
 }
 
+/**
+ * 按官方文档对模板参数的修正(help.aliyun.com/zh/model-studio/qwen-api-via-openai-chat-completions
+ * 的 reasoning_effort 说明,以及 Token Plan 个人版概述的模型能力表)。
+ * qwen4-max-preview 与 qwen3.8-max 规则相同(low / medium / xhigh),无需修正。
+ */
+const OFFICIAL_OVERRIDES: Record<string, Partial<ModelLike>> = {
+  // reasoning_effort:low / high(默认)/ max;概述页标注支持视觉理解。
+  "deepseek-v4.1-flash": {
+    input: ["text", "image"],
+    thinkingLevelMap: { off: null, minimal: null, low: "low", medium: null, high: "high", xhigh: null, max: "max" },
+  },
+  // 概述页标注支持视觉理解;思考档位文档未单列,沿用模板(high / max)。
+  "deepseek-v4.1-flash-1017": { input: ["text", "image"] },
+};
+
 export interface ModelLike {
   id: string;
   name?: string;
@@ -61,7 +76,7 @@ export function planInjection(remoteIds: string[], existing: ModelLike[]): Model
     if (known.has(id) || NON_CHAT.test(id)) continue;
     const template = pickTemplate(id, chatModels);
     if (!template) continue;
-    additions.push({ ...template, id, name: prettifyModelName(id) });
+    additions.push({ ...template, ...OFFICIAL_OVERRIDES[id], id, name: prettifyModelName(id) });
     known.add(id);
   }
   return additions;

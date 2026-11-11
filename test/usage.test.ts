@@ -124,4 +124,9 @@ test("new Token Plan models inherit nearest template", () => {
   assert.equal(added[0].contextWindow, "qwen3.8-max".length);
   assert.equal(prettifyModelName("qwen4-max-preview"), "Qwen4 Max Preview");
   assert.deepEqual(planInjection(["auto", "decision-model-preview"], existing), []);
+  const ds = [{ id: "deepseek-v4-flash-0731", provider: "p", type: "chat", input: ["text"],
+    thinkingLevelMap: { low: null, high: "high", max: "max" } }];
+  const [v41] = planInjection(["deepseek-v4.1-flash"], ds);
+  assert.deepEqual(v41.input, ["text", "image"]);
+  assert.equal((v41.thinkingLevelMap as any).low, "low");
 });
